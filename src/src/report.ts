@@ -1,4 +1,5 @@
 import { log } from "./log.ts"
+import { reportTypes } from "./reportTypes.ts";
 
 class FetchData {
     get = async (lcu: string) => {
@@ -18,7 +19,6 @@ class FetchData {
 }
 
 class MassReport extends FetchData {
-    reportType: string[]
     allies: any[]
     opponents: any[]
     gameId: number
@@ -26,19 +26,21 @@ class MassReport extends FetchData {
     constructor () {
         super();
 
-        this.reportType = [
-            "NEGATIVE_ATTITUDE",
-            "VERBAL_ABUSE",
-            "LEAVING_AFK",
-            "ASSISTING_ENEMY_TEAM",
-            "HATE_SPEECH",
-            "THIRD_PARTY_TOOLS",
-            "INAPPROPRIATE_NAME"
-        ]
-
         this.allies = []
         this.opponents = []
         this.gameId = 0
+    }
+
+    getReportType = () => {
+        let type: string[] = []
+
+        for (let i = 0; i < reportTypes.length; i++) {
+            if (window.DataStore.get(`EOG-Mass-Report_${reportTypes[i].name}`)) {
+                type.push(reportTypes[i].name)
+            }
+        }
+
+        return type
     }
 
     getPlayerList = async () => {
@@ -58,26 +60,44 @@ class MassReport extends FetchData {
     getRandomReportType = () => {
         let reportList: string[] = []
 
-        for (let i = 0; i < 1 + Math.floor(Math.random() * 6); i++) {
-            reportList.push(this.reportType[Math.floor(Math.random() * 7)])
-        }
+        let randomReportCount = 1 + Math.floor(Math.random() * 6);
 
-        return reportList
+        while (reportList.length < randomReportCount) {
+            let randomReportId = Math.floor(Math.random() * this.getReportType().length);
+
+            if (!reportList.includes(this.getReportType()[randomReportId])) {
+                reportList.push(this.getReportType()[randomReportId]);
+            }
+        }
+        return reportList;
     }
 
-    report = async (list) => {
+    report = async (list: any) => {
         let i = 0
+        
         for (i = 0; i < list.length; i++) {
-            let randomReportType = this.getRandomReportType()
-            await this.post("/lol-player-report-sender/v1/end-of-game-reports", {
-                "categories": randomReportType,
-                "gameId": this.gameId,
-                "offenderPuuid": list[i].puuid,
-                "offenderSummonerId": list[i].summonerId,
-            })
+            let randomReportType: string[]
 
-            log("Reported", list[i].summonerName, ":", JSON.stringify(randomReportType))
+            if (window.DataStore.get("EOG-Mass-Report_reportOption") == 0) {
+                randomReportType = this.getRandomReportType()
+            }
+            else {
+                randomReportType = this.getReportType()
+            }
+
+            if (randomReportType.length > 0) {
+                await this.post("/lol-player-report-sender/v1/end-of-game-reports", {
+                    "categories": randomReportType,
+                    "gameId": this.gameId,
+                    "offenderPuuid": list[i].puuid,
+                    "offenderSummonerId": list[i].summonerId,
+                })
+
+                log("Reported", list[i].summonerName, ":", JSON.stringify(randomReportType))
+                
+            }
         }
+
         window.Toast.success(`Reported ${i} players!`)
     }
 }  

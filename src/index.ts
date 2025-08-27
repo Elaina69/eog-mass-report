@@ -11,10 +11,10 @@ import { massReport } from "./src/report.ts"
 import { settings } from "./src/settings.ts"
 import { settingsUtils } from "./src/settingsUtils.ts"
 
-if (!window.DataStore.has("EOG-Mass-Report")) {
-    window.DataStore.set("EOG-Mass-Report", true)
-    window.DataStore.set("EOGReportList", 2)
-}
+// Set default Datastore
+if (!window.DataStore.has("EOG-Mass-Report"))               window.DataStore.set("EOG-Mass-Report", true)
+if (!window.DataStore.has("EOG-Mass-Report_reportTarget"))  window.DataStore.set("EOG-Mass-Report_reportTarget", 2)
+if (!window.DataStore.has("EOG-Mass-Report_reportOption"))  window.DataStore.set("EOG-Mass-Report_reportOption", 0)
 
 let main = async (mode: number) => {
     log("Start running...")
@@ -44,14 +44,15 @@ let main = async (mode: number) => {
 }
 
 window.addEventListener("load", () => {
+    console.log(massReport.getReportType())
     settings.injectSettingsUI()
 })
 
 export function init (context: any) {
     context.socket.observe('/lol-gameflow/v1/gameflow-phase',async (data: any) => {
         console.log(data)
-        if (data["data"]=="EndOfGame" && window.DataStore.get("EOG-Mass-Report")) {
-            await main(window.DataStore.get("EOGReportList"))
+        if (data["data"]=="EndOfGame" && window.DataStore.get("EOG-Mass-Report_reportTarget")) {
+            await main(window.DataStore.get("EOG-Mass-Report_reportTarget"))
         }
     })
 
