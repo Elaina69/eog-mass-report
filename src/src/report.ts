@@ -1,4 +1,4 @@
-import { log } from "./log.ts"
+import { log, error, warn } from "./log.ts"
 import { reportTypes } from "./reportTypes.ts";
 
 class FetchData {
@@ -73,9 +73,9 @@ class MassReport extends FetchData {
     }
 
     report = async (list: any) => {
-        let i = 0
+        let reported = 0
         
-        for (i = 0; i < list.length; i++) {
+        for (let i = 0; i < list.length; i++) {
             let randomReportType: string[]
 
             if (window.DataStore.get("EOG-Mass-Report_reportOption") == 0) {
@@ -86,19 +86,28 @@ class MassReport extends FetchData {
             }
 
             if (randomReportType.length > 0) {
-                await this.post("/lol-player-report-sender/v1/end-of-game-reports", {
-                    "categories": randomReportType,
-                    "gameId": this.gameId,
-                    "offenderPuuid": list[i].puuid,
-                    "offenderSummonerId": list[i].summonerId,
-                })
+                try {
+                    await this.post("/lol-player-report-sender/v1/end-of-game-reports", {
+                        "categories": randomReportType,
+                        "gameId": this.gameId,
+                        "offenderPuuid": list[i].puuid,
+                        "offenderSummonerId": list[i].summonerId,
+                    })
 
-                log("Reported", list[i].summonerName, ":", JSON.stringify(randomReportType))
-                
+                    reported++
+
+                    log("Reported", list[i].summonerName, ":", JSON.stringify(randomReportType))
+                } 
+                catch (err) {
+                    error("Error reporting", list[i].summonerName, ":", err)
+                }
+            }
+            else {
+                warn("No report type available for", list[i].summonerName)
             }
         }
 
-        window.Toast.success(`Reported ${i} players!`)
+        window.Toast.success(`Reported ${reported} players!`)
     }
 }  
 let massReport = new MassReport()

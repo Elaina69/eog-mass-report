@@ -32,7 +32,7 @@ let main = async (mode: number) => {
             break;
         case 2: 
             log("Reporting all...")
-            massReport.report(massReport.allies)
+            await massReport.report(massReport.allies)
             await massReport.report(massReport.opponents)
             break;
         default:
@@ -51,7 +51,7 @@ window.addEventListener("load", () => {
 export function init (context: any) {
     context.socket.observe('/lol-gameflow/v1/gameflow-phase',async (data: any) => {
         console.log(data)
-        if (data["data"]=="EndOfGame" && window.DataStore.get("EOG-Mass-Report_reportTarget")) {
+        if (data["data"] == "EndOfGame" && window.DataStore.get("EOG-Mass-Report")) {
             await main(window.DataStore.get("EOG-Mass-Report_reportTarget"))
         }
     })
