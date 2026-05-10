@@ -1,13 +1,19 @@
 {
-    "name": "eog-mass-report",
-    "description": "end of game mass report for Pengu Loader",
+    "pluginName": "EOG Mass Report",
+    "folderName": "eog-mass-report",
+    "author": {
+        "name": "Elaina Da Catto",
+        "github": "Elaina69"
+    },
+    "description": "",
+    "config": {
+        "pluginsPath": "../../@Elaina-Plugins"
+    },
+
     "private": true,
     "version": "1.0.0",
     "license": "MIT",
     "type": "module",
-    "config": {
-        "penguPath": "G:\\Riot Games\\pengu-loader"
-    },
     "scripts": {
         "build": "tsc && vite build"
     },
@@ -19,7 +25,6 @@
         "vite-plugin-mkcert": "^1.16.0"
     },
     "dependencies": {
-        "archiver": "^7.0.1",
         "chalk": "^5.3.0",
         "pengu-upl": "^1.0.0"
     }
